@@ -1,4 +1,6 @@
 using dotnet8_hero.Data;
+using dotnet8_hero.Interfaces;
+using dotnet8_hero.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -7,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // dotnet add package Microsoft.EntityFrameworkCore.InMemory
 // using Microsoft.EntityFrameworkCore;
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionSQLServer")));
+
+// Add product services
+builder.Services.AddTransient<IProductService, ProductService>();
 
 // Add services to the container.
 
