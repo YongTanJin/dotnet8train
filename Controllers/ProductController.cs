@@ -21,24 +21,18 @@ namespace dotnet8_hero.Controllers
     public class ProductController : ControllerBase
 
     {
-        public DatabaseContext DatabaseContext { get; set; }
         public IProductService ProductService { get; }
 
-        public ProductController(DatabaseContext databaseContext, IProductService productService)
+        public ProductController(IProductService productService)
         {
-            this.DatabaseContext = databaseContext;
             ProductService = productService;
         }
 
 
         [HttpGet]
         // non i action result to custom tpye to parse.
-        public async Task<ActionResult<IEnumerable<ProductResponse>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductResponse>>> GetProductsAsync()
         {
-            //search all products
-            // var products = this.DatabaseContext.Products.Include(p=>p.Category).Select(ProductResponse.FromProduct).ToList();
-            // return products;
-
             return (await this.ProductService.FindAll()).Select(ProductResponse.FromProduct).ToList();
         }
 
@@ -54,39 +48,31 @@ namespace dotnet8_hero.Controllers
             return ProductResponse.FromProduct(product);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddProductAsync([FromForm] ProductRequest productRequest)
-        {
-            // (string errorMessage, string imageName) = await ProductService.UploadImage(productRequest.FromFiles);
-            // if (!string.IsNullOrEmpty(errorMessage))
-            // {
-            //     return BadRequest(errorMessage);
-            // }
-            var product = productRequest.Adapt<Product>();
-            product.Image = "";
-            await this.ProductService.Create(product);
-            return StatusCode((int)HttpStatusCode.Created, product);
-        }
-
-        // this is async exammple
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProductAsync(int id)
-        {
-            var product = await this.ProductService.FindById(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            await ProductService.Delete(product);
-            return NoContent();
-        }
-
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<ProductResponse>>> Search([FromQuery] string name)
         {
             var result = (await this.ProductService.Search(name)).Select(ProductResponse.FromProduct).ToList();
             return result;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddProductAsync([FromForm] ProductRequest productRequest)
+        {
+            string finalImageName = "";
+            if(productRequest.FromFiles != null)
+            {
+                (string errorMessage, string imageName) = await ProductService.UploadImage(productRequest.FromFiles);
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    return BadRequest(errorMessage);
+                }
+                finalImageName = imageName;
+            }
+            
+            var product = productRequest.Adapt<Product>();
+            product.Image = finalImageName;
+            await this.ProductService.Create(product);
+            return StatusCode((int)HttpStatusCode.Created, product);
         }
         
         [HttpPut("{id}")]
@@ -116,6 +102,19 @@ namespace dotnet8_hero.Controllers
             productRequest.Adapt(product);
             await ProductService.Update(product);
             return Ok(ProductResponse.FromProduct(product));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProductAsync(int id)
+        {
+            var product = await this.ProductService.FindById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            await ProductService.Delete(product);
+            return NoContent();
         }
     }
 }

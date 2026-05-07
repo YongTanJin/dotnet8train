@@ -12,6 +12,7 @@ builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlServer(b
 
 // Add product services
 builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IUploadFileService, UploadFileService>();
 
 // Add services to the container.
 
@@ -30,9 +31,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();

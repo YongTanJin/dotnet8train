@@ -11,6 +11,6 @@ namespace dotnet8_hero.Interfaces
         Task Delete(Product product);
         Task Update(Product product);
         Task<IEnumerable<Product>> Search(string name);
-        // Task<(string ErrorMessage, string imageName)> UploadImage(List<IFormFile> formFiles);
+        Task<(string ErrorMessage, string imageName)> UploadImage(List<IFormFile> formFiles);
     }
 }
