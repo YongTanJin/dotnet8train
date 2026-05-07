@@ -11,6 +11,7 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using dotnet8_hero.Interfaces;
+using dotnet8_hero.Services;
 //using dotnet8_hero.Models;
 
 namespace dotnet8_hero.Controllers
@@ -54,40 +55,30 @@ namespace dotnet8_hero.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddProduct([FromForm] ProductRequest productRequest)
+        public async Task<IActionResult> AddProductAsync([FromForm] ProductRequest productRequest)
         {
+            // (string errorMessage, string imageName) = await ProductService.UploadImage(productRequest.FromFiles);
+            // if (!string.IsNullOrEmpty(errorMessage))
+            // {
+            //     return BadRequest(errorMessage);
+            // }
             var product = productRequest.Adapt<Product>();
-            this.DatabaseContext.Products.Add(product);
-            this.DatabaseContext.SaveChanges();
+            product.Image = "";
+            await this.ProductService.Create(product);
             return StatusCode((int)HttpStatusCode.Created, product);
         }
-
-        // [HttpDelete("{id}")]
-        // public IActionResult DeleteProduct(int id)
-        // {
-        //     var product = this.DatabaseContext.Products.Find(id);
-        //     if (product == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     this.DatabaseContext.Products.Remove(product);
-        //     this.DatabaseContext.SaveChangesAsync();
-        //     return NoContent();         
-        // }
 
         // this is async exammple
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProductAsync(int id)
         {
-            var product = await this.DatabaseContext.Products.FindAsync(id);
+            var product = await this.ProductService.FindById(id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            this.DatabaseContext.Products.Remove(product);
-            await this.DatabaseContext.SaveChangesAsync();
+            await ProductService.Delete(product);
             return NoContent();
         }
 
@@ -96,6 +87,35 @@ namespace dotnet8_hero.Controllers
         {
             var result = (await this.ProductService.Search(name)).Select(ProductResponse.FromProduct).ToList();
             return result;
+        }
+        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProductAsync(int id, [FromForm] ProductRequest productRequest)
+        {
+            if (id != productRequest.ProductId)
+            {
+                return BadRequest();
+            }
+
+            var product = await this.ProductService.FindById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            // (string errorMessage, string imageName) = await ProductService.UploadImage(productRequest.FromFiles);
+            // if (!string.IsNullOrEmpty(errorMessage))
+            // {
+            //     return BadRequest(errorMessage);
+            // }
+            // if (!string.IsNullOrEmpty(imageName))
+            // {
+            //     product.Image = imageName;
+            // }
+
+            productRequest.Adapt(product);
+            await ProductService.Update(product);
+            return Ok(ProductResponse.FromProduct(product));
         }
     }
 }

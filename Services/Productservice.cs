@@ -24,19 +24,27 @@ namespace dotnet8_hero.Services
             return this.DatabaseContext.Products.Include(p => p.Category).Where(p => p.ProductId == id).FirstOrDefaultAsync();
         }
 
-        public Task Create(Product product)
+        public async Task Create(Product product)
         {
-            throw new NotImplementedException();
+            DatabaseContext.Products.Add(product);
+            await DatabaseContext.SaveChangesAsync();
+        }
+
+        public async Task Delete(Product product)
+        {
+            DatabaseContext.Products.Remove(product);
+            await DatabaseContext.SaveChangesAsync();
+        }
+
+        public async Task Update(Product product)
+        {
+            DatabaseContext.Products.Update(product);
+            await DatabaseContext.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Product>> Search(string name)
         {
             return await DatabaseContext.Products.Include(p => p.Category).Where(p => p.Name.Contains(name)).ToListAsync();
-        }
-
-        public Task Update(Product product)
-        {
-            throw new NotImplementedException();
         }
     }
 }

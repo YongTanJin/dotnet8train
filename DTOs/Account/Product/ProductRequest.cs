@@ -5,6 +5,8 @@ namespace dotnet8_hero.DTO.Product
 {
     public class ProductRequest
     {
+        public int ProductId { get; set; }
+        
         [Required]
         [MaxLength(10, ErrorMessage = "Name maximum length is 10.")]
         public string Name { get; set; } = "";
